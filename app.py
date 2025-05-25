@@ -31,8 +31,8 @@ class PatientInput(BaseModel):
 
 @app.get("/", response_class=HTMLResponse)
 def serve_index():
-    # index.html 'templates/' altinda // Değişebilir.
-    template_path = os.path.join("..", "templates", "index.html")
+    # index.html 'templates/' altinda
+    template_path = os.path.join("templates", "index.html")
     try:
         with open(template_path, "r", encoding="utf-8") as f:
             return HTMLResponse(content=f.read(), status_code=200)
