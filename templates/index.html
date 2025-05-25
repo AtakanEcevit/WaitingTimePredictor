@@ -119,8 +119,8 @@
                      data-bs-toggle="tooltip"
                      data-bs-title="Negative = early, Positive = late, 0 = on time."></i>
                 </label>
-                <input type="number" id="gelisSure" step="0.1" class="form-control" placeholder="e.g. -10" required>
-                <div class="invalid-feedback">Please enter a valid offset.</div>
+                <input type="number" id="gelisSure" step="0.1" class="form-control" min="-40" max="40" placeholder="e.g. -10" required>
+                <div class="invalid-feedback">Please enter a valid offset between -40 and 40 minutes.</div>
               </div>
               <div id="gelisBadge" class="mb-3"></div>
 
