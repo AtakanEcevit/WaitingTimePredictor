@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Outpatient Waiting-Time Predictor</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+  <style>
+    :root{
+      --pri:#0d6efd;
+      --bg:#eef3f9;      /* ==> açık arka plan  */
+      --radius:1rem;
+    }
+    body{background:var(--bg);}
+    .card{border-radius:var(--radius);border:1px solid #e6ecf1;}
+    .btn-primary{border-radius:1.7rem;padding:.55rem 2.2rem;font-weight:600;}
+    .tooltip-icon{margin-left:4px;color:var(--pri);cursor:pointer;opacity:.8;}
+    .tooltip-icon:hover{opacity:1;}
+    .timing-badge{font-size:.8rem;font-weight:600;padding:.35rem .9rem;border-radius:2rem;display:inline-block;min-width:90px;text-align:center}
+    .timing-early{color:#146c43;background:#d1e7dd;border:1px solid #a3cfbb}
+    .timing-late {color:#b02a37;background:#f8d7da;border:1px solid #e4a5ab}
+    .timing-on   {color:#495057;background:#e2e3e5;border:1px solid #d3d6d8}
+    footer{font-size:.75rem;color:#6c757d;margin-top:2.5rem;text-align:center}
+    .howto li{margin-bottom:.3rem;}
+  </style>
+</head>
+
+<body>
+  <div class="container py-5">
+    <div class="row justify-content-center">
+      <div class="col-lg-7 col-md-9">
+
+        <!-- ==== MAIN CARD ==== -->
+        <div class="card shadow-sm">
+          <div class="card-header text-center border-bottom-0 pb-0">
+            <h1 class="mb-1">Outpatient Waiting-Time Predictor</h1>
+            <p class="text-muted mb-3" style="font-size:.9rem;">Fill in the form to estimate the waiting time.</p>
+
+            <!-- quick “how-to” -->
+            <ul class="text-muted small list-unstyled howto">
+              <li><i class="bi bi-1-circle me-1 text-primary"></i>Select <strong>day & hour</strong></li>
+              <li><i class="bi bi-2-circle me-1 text-primary"></i>Choose <strong>doctor ID</strong></li>
+              <li><i class="bi bi-3-circle me-1 text-primary"></i>Set <strong>hourly load</strong> with slider</li>
+              <li><i class="bi bi-4-circle me-1 text-primary"></i>Enter arrival offset (early / late)</li>
+            </ul>
+          </div>
+
+          <div class="card-body p-4 pt-0">
+            <form id="predictForm" novalidate>
+              <!-- Day -->
+              <div class="mb-3">
+                <label for="gun" class="form-label">
+                  Day
+                  <i class="bi bi-info-circle-fill tooltip-icon"
+                     data-bs-toggle="tooltip"
+                     data-bs-title="Choose the weekday of the visit."></i>
+                </label>
+                <select id="gun" class="form-select" required>
+                  <option value="" selected disabled>Select…</option>
+                  <option>Monday</option><option>Tuesday</option><option>Wednesday</option>
+                  <option>Thursday</option><option>Friday</option><option>Saturday</option>
+                </select>
+                <div class="invalid-feedback">Please select a day.</div>
+              </div>
+
+              <!-- Hour -->
+              <div class="mb-3">
+                <label for="saat" class="form-label">
+                  Hour (07–17)
+                  <i class="bi bi-clock tooltip-icon"
+                     data-bs-toggle="tooltip"
+                     data-bs-title="Enter the 24-hour appointment time."></i>
+                </label>
+                <input type="number" id="saat" class="form-control" min="7" max="17" placeholder="e.g. 10" required>
+                <div class="form-text">Operating hours are 07:00 – 17:00.</div>
+                <div class="invalid-feedback">Hour must be between 7 and 17.</div>
+              </div>
+
+              <!-- Doctor -->
+              <div class="mb-3">
+                <label for="doktor" class="form-label">
+                  Doctor ID
+                  <i class="bi bi-shield-lock-fill tooltip-icon"
+                     data-bs-toggle="tooltip"
+                     data-bs-title="Doctor selection currently do not affect the predicted waiting time."></i>
+                </label>
+                <select id="doktor" class="form-select" required>
+                  <option value="" selected disabled>Select…</option>
+                  <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+                </select>
+		<div class="form-text">Doctors are shown as anonymised IDs for privacy.</div>
+                <div class="invalid-feedback">Please select a doctor ID.</div>
+              </div>
+
+              <!-- Hourly Load slider -->
+              <div class="mb-3">
+                <label class="form-label">
+                  Hourly Load
+                  <i class="bi bi-people-fill tooltip-icon"
+                     data-bs-toggle="tooltip"
+                     data-bs-title="Booked patients in that hour (0–10)."></i>
+                </label>
+                <div class="d-flex align-items-center gap-3">
+                  <input type="range" id="doluluk" class="form-range flex-grow-1" min="0" max="10" step="1" value="5">
+                  <span id="dolulukVal"
+                        class="badge bg-primary-subtle text-primary fw-semibold px-3 py-2"
+                        style="min-width:2.6rem;">5</span>
+                </div>
+                <div class="form-text">Soon this value will be fetched automatically from the hospital information system.</div>
+              </div>
+
+              <!-- Arrival offset -->
+              <div class="mb-1">
+                <label for="gelisSure" class="form-label">
+                  Arrival Offset (min)
+                  <i class="bi bi-info-circle-fill tooltip-icon"
+                     data-bs-toggle="tooltip"
+                     data-bs-title="Negative = early, Positive = late, 0 = on time."></i>
+                </label>
+                <input type="number" id="gelisSure" step="0.1" class="form-control" placeholder="e.g. -10" required>
+                <div class="invalid-feedback">Please enter a valid offset.</div>
+              </div>
+              <div id="gelisBadge" class="mb-3"></div>
+
+              <button type="submit" class="btn btn-primary w-100">Predict</button>
+            </form>
+
+            <div id="sonuc" class="alert alert-info d-none mt-4" role="alert"></div>
+          </div>
+        </div>
+        <!-- ==== /card ==== -->
+      </div>
+    </div>
+    <footer>© 2024 Wait-Time Predictor by Infinity</footer>
+  </div>
+
+  <!-- JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    /* enable tooltips */
+    [...document.querySelectorAll('[data-bs-toggle="tooltip"]')]
+      .forEach(el => new bootstrap.Tooltip(el));
+
+    /* slider bubble */
+    const range   = document.getElementById('doluluk');
+    const bubble  = document.getElementById('dolulukVal');
+    bubble.textContent = range.value;
+    range.addEventListener('input', e => bubble.textContent = e.target.value);
+
+    /* arrival badge */
+    const arrival = document.getElementById('gelisSure');
+    const badge   = document.getElementById('gelisBadge');
+    function setBadge(txt, cls){
+      badge.className = 'timing-badge '+cls;
+      badge.textContent = txt;
+    }
+    arrival.addEventListener('input', () => {
+      const v = parseFloat(arrival.value);
+      if (isNaN(v)){ badge.className=''; badge.textContent=''; return; }
+      if (v < 0)      setBadge('Early',   'timing-early');
+      else if (v > 0) setBadge('Late',    'timing-late');
+      else            setBadge('On time', 'timing-on');
+    });
+
+    /* client-side validation helper */
+    (()=>{
+      'use strict';
+      const f = document.getElementById('predictForm');
+      f.addEventListener('submit', e=>{
+        if(!f.checkValidity()){
+          e.preventDefault(); e.stopPropagation();
+        }
+        f.classList.add('was-validated');
+      },false);
+    })();
+
+    /* submit to API */
+    const form  = document.getElementById('predictForm');
+    const alertBox = document.getElementById('sonuc');
+
+    form.addEventListener('submit', async ev=>{
+      ev.preventDefault();
+      if(!form.checkValidity()) return;   // still invalid
+
+      const payload = {
+        Gun:           document.getElementById('gun').value,
+        Saat:          Number(document.getElementById('saat').value),
+        Doktor_ID:     document.getElementById('doktor').value,
+        Saatlik_Doluluk: Number(range.value),
+        Randevuya_Gelis_Sure: Number(arrival.value)
+      };
+
+      try{
+        const resp  = await fetch('/tahmin',{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify(payload)
+        });
+        const data = await resp.json();
+
+        alertBox.classList.remove('d-none','alert-info','alert-danger');
+        if(resp.ok){
+          alertBox.classList.add('alert-info');
+          alertBox.innerHTML =
+            `<i class="bi bi-clock-history me-2"></i>
+             Estimated wait-time: <strong>${data["Tahmini_Bekleme_Suresi (dk)"].toFixed(1)} min</strong>`;
+        }else{
+          alertBox.classList.add('alert-danger');
+          alertBox.textContent = data.detail || 'Unknown error';
+        }
+      }catch(err){
+        console.error(err);
+        alertBox.classList.remove('d-none','alert-info');
+        alertBox.classList.add('alert-danger');
+        alertBox.textContent = 'Server error – check console.';
+      }
+    });
+  </script>
+</body>
+</html>
