@@ -74,8 +74,8 @@
                      data-bs-title="Enter the 24-hour appointment time."></i>
                 </label>
                 <input type="number" id="saat" class="form-control" min="7" max="17" placeholder="e.g. 10" required>
-                <div class="form-text">Operating hours are 07:00 – 17:00.</div>
-                <div class="invalid-feedback">Hour must be between 7 and 17.</div>
+                <div class="form-text">Operating hours are 7 – 17.</div>
+                <div class="invalid-feedback">Enter the appointment hour (7-17) as a number (e.g. 10, not 10:00)</div>
               </div>
 
               <!-- Doctor -->
@@ -119,8 +119,8 @@
                      data-bs-toggle="tooltip"
                      data-bs-title="Negative = early, Positive = late, 0 = on time."></i>
                 </label>
-                <input type="number" id="gelisSure" step="0.1" class="form-control" placeholder="e.g. -10" required>
-                <div class="invalid-feedback">Please enter a valid offset.</div>
+                <input type="number" id="gelisSure" step="0.1" class="form-control" min="-40" max="40" placeholder="e.g. -10" required>
+                <div class="invalid-feedback">Please enter a valid offset between -40 and 40 minutes.</div>
               </div>
               <div id="gelisBadge" class="mb-3"></div>
 
@@ -133,7 +133,7 @@
         <!-- ==== /card ==== -->
       </div>
     </div>
-    <footer>© 2024 Wait-Time Predictor by Infinity</footer>
+    <footer>© 2025 Wait-Time Predictor by Infinity</footer>
   </div>
 
   <!-- JS -->
